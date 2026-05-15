@@ -53,33 +53,36 @@ class Agent:
 
         torch.save(self.model.state_dict(), self.best_model_path)
 
-    def log_metrics(self, score, mean_score, record):
+    def write_metrics(self, plot_scores, plot_mean_scores):
         model_folder_path = "./model"
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
 
-        file_exists = os.path.exists(self.metrics_path)
-        with open(self.metrics_path, "a", newline="") as handle:
+        with open(self.metrics_path, "w", newline="") as handle:
             writer = csv.writer(handle)
-            if not file_exists:
-                writer.writerow(
-                    [
-                        "game",
-                        "score",
-                        "mean_score",
-                        "record",
-                        "epsilon",
-                    ]
-                )
             writer.writerow(
                 [
-                    self.n_games,
-                    score,
-                    mean_score,
-                    record,
-                    self.epsilon,
+                    "game",
+                    "score",
+                    "mean_score",
+                    "record",
+                    "epsilon",
                 ]
             )
+            record = 0
+            for idx, score in enumerate(plot_scores, start=1):
+                record = max(record, score)
+                mean_score = plot_mean_scores[idx - 1]
+                epsilon = 80 - idx
+                writer.writerow(
+                    [
+                        idx,
+                        score,
+                        mean_score,
+                        record,
+                        epsilon,
+                    ]
+                )
 
     def load_checkpoint(self):
         if not os.path.exists(self.model_path):
@@ -189,47 +192,53 @@ def train():
         print(f"Resumed checkpoint from {agent.model_path}")
 
     game = SnakeGameAI()
-    while True:
-        # get old state
-        state_old = agent.get_state(game)
+    try:
+        while True:
+            # get old state
+            state_old = agent.get_state(game)
 
-        # get move
-        final_move = agent.get_action(state_old)
+            # get move
+            final_move = agent.get_action(state_old)
 
-        # perform move and get new state
-        reward, done, score = game.play_step(final_move)
-        state_new = agent.get_state(game)
+            # perform move and get new state
+            reward, done, score = game.play_step(final_move)
+            state_new = agent.get_state(game)
 
-        # train short memory
-        agent.train_short_memory(state_old, final_move, reward, state_new, done)
+            # train short memory
+            agent.train_short_memory(state_old, final_move, reward, state_new, done)
 
-        # remember
-        agent.remember(state_old, final_move, reward, state_new, done)
+            # remember
+            agent.remember(state_old, final_move, reward, state_new, done)
 
-        if done:
-            # train long memory, plot result
-            game.reset()
-            agent.n_games += 1
-            agent.train_long_memory()
+            if done:
+                # train long memory, plot result
+                game.reset()
+                agent.n_games += 1
+                agent.train_long_memory()
 
-            new_record = False
-            if score > record:
-                record = score
-                new_record = True
-                agent.save_best_model()
+                new_record = False
+                if score > record:
+                    record = score
+                    new_record = True
+                    agent.save_best_model()
 
-            print("Game", agent.n_games, "Score", score, "Record:", record)
+                print("Game", agent.n_games, "Score", score, "Record:", record)
 
-            plot_scores.append(score)
-            total_score += score
-            mean_score = total_score / agent.n_games
-            plot_mean_scores.append(mean_score)
-            agent.log_metrics(score, mean_score, record)
-            if new_record or agent.n_games % CHECKPOINT_EVERY == 0:
-                agent.save_checkpoint(
-                    record, total_score, plot_scores, plot_mean_scores
-                )
-            plot(plot_scores, plot_mean_scores)
+                plot_scores.append(score)
+                total_score += score
+                mean_score = total_score / agent.n_games
+                plot_mean_scores.append(mean_score)
+                if new_record or agent.n_games % CHECKPOINT_EVERY == 0:
+                    agent.save_checkpoint(
+                        record, total_score, plot_scores, plot_mean_scores
+                    )
+                plot(plot_scores, plot_mean_scores)
+    except KeyboardInterrupt:
+        print("Training interrupted. Saving checkpoint and metrics...")
+    finally:
+        if agent.n_games > 0:
+            agent.save_checkpoint(record, total_score, plot_scores, plot_mean_scores)
+            agent.write_metrics(plot_scores, plot_mean_scores)
 
 
 if __name__ == "__main__":
