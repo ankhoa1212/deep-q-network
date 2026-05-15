@@ -31,6 +31,8 @@ Run the training script with:
 uv run python agent.py
 ```
 
+If `model/model.pth` exists, training resumes from the full checkpoint automatically. It stores the model, optimizer, episode count, replay memory, and score history. Delete the file if you want to start from scratch.
+
 Run the human-play version with:
 
 ```bash
@@ -54,6 +56,8 @@ Run the training script with:
 ```bash
 python agent.py
 ```
+
+If `model/model.pth` exists, training resumes from the full checkpoint automatically. It stores the model, optimizer, episode count, replay memory, and score history. Delete the file if you want to start from scratch.
 
 Run the human-play version with:
 
