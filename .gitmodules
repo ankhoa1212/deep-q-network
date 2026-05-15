@@ -1,0 +1,3 @@
+[submodule "snake-ai-pytorch"]
+	path = snake-ai-pytorch
+	url = https://github.com/patrickloeber/snake-ai-pytorch.git
