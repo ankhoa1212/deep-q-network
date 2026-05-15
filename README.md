@@ -18,3 +18,18 @@ uv run python agent.py
 ```
 
 For the full setup notes and alternate run commands, see [snake-ai-pytorch/README.md](snake-ai-pytorch/README.md).
+
+## Fallback Without The Submodule
+
+If the git submodule does not work for you, use a zip archive of the `snake-ai-pytorch` folder instead.
+
+Unpack the archive into this repository so the project still lives at `snake-ai-pytorch/`, then run the same commands from that directory:
+
+```bash
+unzip snake-ai-pytorch.zip
+cd snake-ai-pytorch
+uv sync
+uv run python agent.py
+```
+
+If the zip file already contains the folder, you only need to extract it and move into the directory before running `uv sync`.
