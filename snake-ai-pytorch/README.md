@@ -31,7 +31,19 @@ Run the training script with:
 uv run python agent.py
 ```
 
-If `model/model.pth` exists, training resumes from the full checkpoint automatically. It stores the model, optimizer, episode count, replay memory, and score history. Delete the file if you want to start from scratch. The best model weights are saved separately to `model/best_model.pth` when a new record is reached.
+If `model/model.pth` exists, training resumes from the full checkpoint automatically. It stores the model, optimizer, episode count, replay memory, and score history. Delete the file if you want to start from scratch. The best model weights are saved separately to `model/best_model.pth` when a new record is reached. Checkpoints are written atomically, with a backup at `model/model.pth.bak` if you need to restore a previous save.
+
+To run a trained model instead of training:
+
+```bash
+uv run python agent.py --play
+```
+
+To run a specific checkpoint or weight file:
+
+```bash
+uv run python agent.py --play --model-path model/best_model.pth
+```
 
 Run the human-play version with:
 
@@ -57,11 +69,23 @@ Run the training script with:
 python agent.py
 ```
 
-If `model/model.pth` exists, training resumes from the full checkpoint automatically. It stores the model, optimizer, episode count, replay memory, and score history. Delete the file if you want to start from scratch. The best model weights are saved separately to `model/best_model.pth` when a new record is reached.
+If `model/model.pth` exists, training resumes from the full checkpoint automatically. It stores the model, optimizer, episode count, replay memory, and score history. Delete the file if you want to start from scratch. The best model weights are saved separately to `model/best_model.pth` when a new record is reached. Checkpoints are written atomically, with a backup at `model/model.pth.bak` if you need to restore a previous save.
+
+To run a trained model instead of training:
+
+```bash
+python agent.py --play
+```
+
+To run a specific checkpoint or weight file:
+
+```bash
+python agent.py --play --model-path model/best_model.pth
+```
 
 ## Training Metrics Log
 
-Training metrics are appended to `model/training_metrics.csv` after each completed game.
+Training metrics are written to `model/training_metrics.csv` when training exits (including Ctrl+C).
 
 To plot the metrics without additional dependencies:
 

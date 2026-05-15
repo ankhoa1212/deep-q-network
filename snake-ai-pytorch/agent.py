@@ -1,3 +1,4 @@
+import argparse
 import torch
 import random
 import numpy as np
@@ -32,6 +33,9 @@ class Agent:
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
 
+        tmp_path = f"{self.model_path}.tmp"
+        backup_path = f"{self.model_path}.bak"
+
         torch.save(
             {
                 "model_state_dict": self.model.state_dict(),
@@ -43,8 +47,12 @@ class Agent:
                 "plot_mean_scores": plot_mean_scores,
                 "memory": list(self.memory),
             },
-            self.model_path,
+            tmp_path,
         )
+
+        if os.path.exists(self.model_path):
+            os.replace(self.model_path, backup_path)
+        os.replace(tmp_path, self.model_path)
 
     def save_best_model(self):
         model_folder_path = "./model"
@@ -98,6 +106,16 @@ class Agent:
         except (KeyError, RuntimeError, ValueError, TypeError) as exc:
             print(f"Checkpoint load failed: {exc}")
             return None
+
+    def load_model_weights(self, weights_path):
+        if not os.path.exists(weights_path):
+            raise FileNotFoundError(f"Model file not found: {weights_path}")
+
+        state = torch.load(weights_path, map_location=torch.device("cpu"))
+        if isinstance(state, dict) and "model_state_dict" in state:
+            self.model.load_state_dict(state["model_state_dict"])
+        else:
+            self.model.load_state_dict(state)
 
     def get_state(self, game):
         head = game.snake[0]
@@ -175,6 +193,15 @@ class Agent:
 
         return final_move
 
+    def get_action_eval(self, state):
+        state0 = torch.tensor(state, dtype=torch.float)
+        with torch.no_grad():
+            prediction = self.model(state0)
+        move = torch.argmax(prediction).item()
+        final_move = [0, 0, 0]
+        final_move[move] = 1
+        return final_move
+
 
 def train():
     agent = Agent()
@@ -241,5 +268,39 @@ def train():
             agent.write_metrics(plot_scores, plot_mean_scores)
 
 
+def run_trained(model_path=None):
+    agent = Agent()
+    if model_path is None:
+        if os.path.exists(agent.best_model_path):
+            model_path = agent.best_model_path
+        else:
+            model_path = agent.model_path
+
+    agent.load_model_weights(model_path)
+    game = SnakeGameAI()
+    while True:
+        state = agent.get_state(game)
+        final_move = agent.get_action_eval(state)
+        _, done, score = game.play_step(final_move)
+        if done:
+            print("Final Score", score)
+            break
+
+
 if __name__ == "__main__":
-    train()
+    parser = argparse.ArgumentParser(description="Train or run the Snake agent")
+    parser.add_argument(
+        "--play",
+        action="store_true",
+        help="Run a trained model instead of training",
+    )
+    parser.add_argument(
+        "--model-path",
+        help="Path to a model file (best_model.pth or model.pth)",
+    )
+    args = parser.parse_args()
+
+    if args.play:
+        run_trained(args.model_path)
+    else:
+        train()

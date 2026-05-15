@@ -12,7 +12,7 @@ This repository contains the Snake reinforcement learning project built with PyT
 
 From the `snake-ai-pytorch` directory, create and sync the environment, then run the training.
 
-The trainer automatically resumes from the full checkpoint at `snake-ai-pytorch/model/model.pth` if it exists. That file stores the model, optimizer, episode count, replay memory, and score history. Delete it to retrain from scratch. The best model weights are also saved to `snake-ai-pytorch/model/best_model.pth` when a new record is reached.
+The trainer automatically resumes from the full checkpoint at `snake-ai-pytorch/model/model.pth` if it exists. That file stores the model, optimizer, episode count, replay memory, and score history. Delete it to retrain from scratch. The best model weights are also saved to `snake-ai-pytorch/model/best_model.pth` when a new record is reached. Checkpoints are written atomically, with a backup at `snake-ai-pytorch/model/model.pth.bak` if you need to restore a previous save.
 
 **With uv:**
 
@@ -33,3 +33,5 @@ python agent.py
 ```
 
 For detailed setup notes, run options, and training time expectations, see [snake-ai-pytorch/README.md](snake-ai-pytorch/README.md).
+
+To run a trained model from a specific checkpoint, use the `--play` and `--model-path` flags described in [snake-ai-pytorch/README.md](snake-ai-pytorch/README.md).
