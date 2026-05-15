@@ -2,6 +2,7 @@ import torch
 import random
 import numpy as np
 import os
+import csv
 from collections import deque
 from game import SnakeGameAI, Direction, Point
 from model import Linear_QNet, QTrainer
@@ -23,6 +24,8 @@ class Agent:
         self.model = Linear_QNet(11, 256, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
         self.model_path = os.path.join("model", "model.pth")
+        self.best_model_path = os.path.join("model", "best_model.pth")
+        self.metrics_path = os.path.join("model", "training_metrics.csv")
 
     def save_checkpoint(self, record, total_score, plot_scores, plot_mean_scores):
         model_folder_path = "./model"
@@ -42,6 +45,41 @@ class Agent:
             },
             self.model_path,
         )
+
+    def save_best_model(self):
+        model_folder_path = "./model"
+        if not os.path.exists(model_folder_path):
+            os.makedirs(model_folder_path)
+
+        torch.save(self.model.state_dict(), self.best_model_path)
+
+    def log_metrics(self, score, mean_score, record):
+        model_folder_path = "./model"
+        if not os.path.exists(model_folder_path):
+            os.makedirs(model_folder_path)
+
+        file_exists = os.path.exists(self.metrics_path)
+        with open(self.metrics_path, "a", newline="") as handle:
+            writer = csv.writer(handle)
+            if not file_exists:
+                writer.writerow(
+                    [
+                        "game",
+                        "score",
+                        "mean_score",
+                        "record",
+                        "epsilon",
+                    ]
+                )
+            writer.writerow(
+                [
+                    self.n_games,
+                    score,
+                    mean_score,
+                    record,
+                    self.epsilon,
+                ]
+            )
 
     def load_checkpoint(self):
         if not os.path.exists(self.model_path):
@@ -178,6 +216,7 @@ def train():
             if score > record:
                 record = score
                 new_record = True
+                agent.save_best_model()
 
             print("Game", agent.n_games, "Score", score, "Record:", record)
 
@@ -185,6 +224,7 @@ def train():
             total_score += score
             mean_score = total_score / agent.n_games
             plot_mean_scores.append(mean_score)
+            agent.log_metrics(score, mean_score, record)
             if new_record or agent.n_games % CHECKPOINT_EVERY == 0:
                 agent.save_checkpoint(
                     record, total_score, plot_scores, plot_mean_scores

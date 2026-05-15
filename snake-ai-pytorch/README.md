@@ -31,7 +31,7 @@ Run the training script with:
 uv run python agent.py
 ```
 
-If `model/model.pth` exists, training resumes from the full checkpoint automatically. It stores the model, optimizer, episode count, replay memory, and score history. Delete the file if you want to start from scratch.
+If `model/model.pth` exists, training resumes from the full checkpoint automatically. It stores the model, optimizer, episode count, replay memory, and score history. Delete the file if you want to start from scratch. The best model weights are saved separately to `model/best_model.pth` when a new record is reached.
 
 Run the human-play version with:
 
@@ -57,7 +57,23 @@ Run the training script with:
 python agent.py
 ```
 
-If `model/model.pth` exists, training resumes from the full checkpoint automatically. It stores the model, optimizer, episode count, replay memory, and score history. Delete the file if you want to start from scratch.
+If `model/model.pth` exists, training resumes from the full checkpoint automatically. It stores the model, optimizer, episode count, replay memory, and score history. Delete the file if you want to start from scratch. The best model weights are saved separately to `model/best_model.pth` when a new record is reached.
+
+## Training Metrics Log
+
+Training metrics are appended to `model/training_metrics.csv` after each completed game.
+
+To plot the metrics without additional dependencies:
+
+```bash
+uv run python plot_metrics.py
+```
+
+To save the plot as a PNG instead of opening a window:
+
+```bash
+uv run python plot_metrics.py --save-png training_metrics.png
+```
 
 Run the human-play version with:
 
