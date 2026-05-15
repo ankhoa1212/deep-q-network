@@ -1,0 +1,13 @@
+[project]
+name = "snake-ai-pytorch"
+version = "0.1.0"
+description = "Deep Q-learning Snake example built with PyTorch and Pygame"
+requires-python = ">=3.11"
+dependencies = [
+    "ipython",
+    "matplotlib",
+    "numpy",
+    "pygame",
+    "setuptools<81",
+    "torch",
+]

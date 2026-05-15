@@ -1,0 +1,6 @@
+ipython
+matplotlib
+numpy
+pygame
+setuptools<81
+torch
